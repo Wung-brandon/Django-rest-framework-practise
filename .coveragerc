@@ -1,0 +1,7 @@
+[run]
+source=authentication/, todo_api/,
+omit=
+    venv
+    */migration/*
+    */tests/*
+    */__init__.py/*
