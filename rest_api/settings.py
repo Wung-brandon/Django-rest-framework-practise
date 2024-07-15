@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     "authentication.apps.AuthenticationConfig",
     
     "rest_framework",
+    "django_filters",
+    
 ]
 
 AUTH_USER_MODEL="authentication.User"
@@ -48,7 +50,12 @@ AUTH_USER_MODEL="authentication.User"
 REST_FRAMEWORK={
     'DEFAULT_AUTHENTICATION_CLASSES':[
         'authentication.jwt.JWTAuthentication',
-    ]
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+
+    ],
+
+
 }
 
 MIDDLEWARE = [

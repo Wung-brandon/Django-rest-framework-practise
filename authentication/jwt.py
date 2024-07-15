@@ -7,31 +7,28 @@ from .models import User
 class JWTAuthentication(BaseAuthentication):
     
     def authenticate(self, request):
+        auth_header = get_authorization_header(request).split()
         
-        auth_header = get_authorization_header(request)
-        auth_data = auth_header.decode('utf-8')
-        auth_token = auth_data.split(" ")
+        if not auth_header or auth_header[0].lower() != b'bearer':
+            return None
         
-        if len(auth_data) != 2:
+        if len(auth_header) != 2:
             raise exceptions.AuthenticationFailed("Token is not valid")
         
-        token = auth_token[1]
+        token = auth_header[1]
+        if isinstance(token, bytes):
+            token = token.decode('utf-8')
+
         try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms="HS256")
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
             username = payload["username"]
             user = User.objects.get(username=username)
-            
             return (user, token)
-           
-        except User.DoesNotExist as no_user:
+        except User.DoesNotExist:
             raise exceptions.AuthenticationFailed("No such user")
-        
-        except jwt.ExpiredSignatureError as ex:
+        except jwt.ExpiredSignatureError:
             raise exceptions.AuthenticationFailed("Token is expired, login again")
+        except jwt.DecodeError:
+            raise exceptions.AuthenticationFailed("Token is invalid")
         
-        except jwt.DecodeError as ex:
-            raise exceptions.AuthenticationFailed("Token is Invalid")
-        
-            
-        return super().authenticate(request)
-
+        return None
